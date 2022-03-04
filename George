@@ -1,0 +1,50 @@
+from bs4 import BeautifulSoup
+import requests
+import pandas as pd
+
+
+
+
+url = "https://www.timesjobs.com/candidate/job-search.html?searchType=personalizedSearch&from=submit&txtKeywords=python&txtLocation="
+
+page = requests.get(url)
+
+try:
+    soup = BeautifulSoup(page.text, 'html5lib')
+except:
+    print(page.status_code)
+
+def util_func(lst_element, index):
+    try:
+        return lst_element.contents[index].strip()
+    except TypeError:
+        pass
+    except IndexError:
+        pass
+
+company_names = soup.select("h3")
+company_name_col = [ util_func(company_name,2) for company_name in company_names]
+company_name_col = list(filter(None, company_name_col))
+
+skills = soup.select("li:nth-of-type(2)")
+skill_col = [ util_func(skill,2) for skill in skills ]
+skill_col = list(filter(None, skill_col))
+
+more_infos = soup.select("li:nth-of-type(3)")
+more_info_col = [ util_func(more_info,0) for more_info in more_infos]
+more_info_col = list(filter(None, more_info_col))
+
+
+    
+    
+cols = ['Company', 'Skill', 'More_Info']
+df_data = zip(company_name_col, skill_col, more_info_col)
+scholar_df = pd.DataFrame(columns=cols, data=df_data)
+
+# scholar_df.set_index('Deadline',inplace=True)
+# scholar_df.sort_values(by='Deadline', ascending=0)
+
+scholar_df
+
+scholar_df.to_csv(r"./Scholarships.csv", index=False, sep=',', encoding='utf-8')
+scholar_df.to_excel("./Scholarship.xlsx")
